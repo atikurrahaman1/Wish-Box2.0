@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>জন্মদিনের শুভেচ্ছা জেনারেটর</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- General Styles --- */
+        body { margin: 0; font-family: 'Hind Siliguri', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #333; }
+        .container { width: 90%; max-width: 450px; background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); text-align: center; transition: all 0.3s ease; z-index: 10; }
+
+        /* --- Generator Screen Styles --- */
+        #generator-screen h1 { color: #e83e8c; margin-bottom: 25px; }
+        .form-group { margin-bottom: 20px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #555; }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-family: 'Hind Siliguri', sans-serif; font-size: 16px; }
+        #generateBtn { width: 100%; padding: 14px; background: linear-gradient(45deg, #f72585, #7209b7); color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        #generateBtn:disabled { background: #ccc; cursor: not-allowed; }
+        #loader { display: none; width: 20px; height: 20px; border: 3px solid rgba(255, 255, 255, 0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
+        #link-output { margin-top: 25px; display: none; padding: 15px; background-color: #e9ecef; border-radius: 8px; text-align: left; }
+        #link-output p { margin: 0 0 10px 0; font-weight: 500; }
+        #generatedLink { display: block; width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; background-color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-sizing: border-box; margin-bottom: 10px; }
+        #copyBtn { padding: 8px 15px; background-color: #e83e8c; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #copyBtn:hover { background-color: #c93075; }
+
+        /* --- Wish Screen Styles --- */
+        #wish-screen { display: none; width: 100%; max-width: 500px; height: 100vh; background: linear-gradient(to top, #281c3e, #0a041a); position: relative; padding-top: 5vh; box-sizing: border-box; overflow: hidden; text-align: center; }
+        
+        /* === উন্নত CSS কেক === */
+        .cake-container { position: relative; display: flex; align-items: flex-end; justify-content: center; height: 400px; margin-top: 10vh; }
+        .plate { position: absolute; bottom: -10px; width: 320px; height: 30px; background-color: #f9f9f9; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .cake { position: relative; width: 250px; height: 150px; background-image: repeating-linear-gradient(#fdf0f5 0px, #fdf0f5 18px, #fff 18px, #fff 21px); border-radius: 50% / 20px; }
+        .cake-top { position: absolute; top: -5px; left: 5px; right: 5px; height: 10px; background-color: #fff; border-radius: 50% / 10px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
+        .icing { position: absolute; top: 0; left: 0; right: 0; height: 20px; background: repeating-radial-gradient(circle at 10px 15px, #e83e8c 0, #e83e8c 8px, transparent 8px); background-size: 20px 20px; }
+        .candles { position: absolute; top: -35px; left: 50%; transform: translateX(-50%); }
+        .candle { display: inline-block; width: 8px; height: 40px; background-color: #7209b7; border-radius: 3px 3px 0 0; position: relative; margin: 0 10px; }
+        .candle::before { content: ''; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 8px; height: 10px; background-color: #ffc83d; border-radius: 50%; box-shadow: 0 0 10px #ffc83d, 0 0 20px #ffc83d; animation: flicker 1.5s infinite; }
+        
+        .cake-text-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; z-index: 5; }
+        #wish-name { font-family: 'Pacifico', cursive; font-size: 2.5rem; color: #d12d7c; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); margin: 0; }
+        #wish-age { font-family: 'Pacifico', cursive; font-size: 1.8rem; color: #5b0791; margin-top: 5px; }
+
+        .secret-message-container { position: absolute; top: 70vh; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background-color: rgba(255, 255, 255, 0.9); padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 5; }
+        
+        /* === টাইপিং অ্যানিমেশন স্টাইল === */
+        #secret-message { font-size: 1.2rem; color: #333; min-height: 1.5em; }
+        #secret-message::after {
+            content: '█';
+            display: inline-block;
+            animation: blink 0.7s infinite;
+            margin-left: 4px;
+        }
+        #secret-message.typing-done::after {
+            display: none;
+        }
+
+        /* === ঝরে পড়া লাভ ❤️ === */
+        .heart { position: absolute; top: -5vh; font-size: 1.5rem; animation: fall linear forwards; }
+        
+        /* --- Animations --- */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes flicker { 0%, 100% { transform: scaleY(1); opacity: 1; } 50% { transform: scaleY(0.8); opacity: 0.8; } }
+        @keyframes fall { to { top: 105vh; transform: rotate(360deg); opacity: 0; } }
+        @keyframes blink { 0% { opacity: 1; } 49% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 0; } }
+        
+        @media (max-width: 480px) {
+             #wish-name { font-size: 2rem; } #wish-age { font-size: 1.5rem; }
+             .secret-message-container { top: auto; bottom: 20px; }
+             #secret-message { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Screen 1 -->
+    <div id="generator-screen" class="container">
+        <h1>জন্মদিনের শুভেচ্ছা বার্তা তৈরি করুন</h1>
+        <form id="wish-form"> <div class="form-group"> <label for="name">যার জন্মদিন তার নাম:</label> <input type="text" id="name" placeholder="যেমন: আরিয়ান" required> </div> <div class="form-group"> <label for="age">বয়স:</label> <input type="number" id="age" placeholder="যেমন: ২৫" required> </div> <div class="form-group"> <label for="message">গোপন বার্তা:</label> <textarea id="message" rows="4" placeholder="এখানে আপনার গোপন শুভেচ্ছা বার্তা লিখুন..." required></textarea> </div> <button type="submit" id="generateBtn"> <span id="btn-text">লিংক জেনারেট করুন</span> <div id="loader"></div> </button> </form>
+        <div id="link-output"> <p>আপনার লিংক তৈরি হয়েছে! এটি কপি করে শেয়ার করুন:</p> <input type="text" id="generatedLink" readonly> <button id="copyBtn">কপি করুন</button> </div>
+    </div>
+
+    <!-- Screen 2 -->
+    <div id="wish-screen">
+        <div id="hearts-container"></div>
+        <div class="cake-container"> <div class="plate"></div> <div class="cake"> <div class="cake-top"></div> <div class="icing"></div> <div class="candles"> <div class="candle"></div> <div class="candle"></div> <div class="candle"></div> </div> <div class="cake-text-container"> <h2 id="wish-name">নাম</h2> <p id="wish-age">বয়স</p> </div> </div> </div>
+        <div class="secret-message-container"> <p id="secret-message"></p> </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyCxTHWVPY7WPGR7P8NZETxNbSwrpa47B-8", authDomain: "task-a46ae.firebaseapp.com", databaseURL: "https://task-a46ae-default-rtdb.firebaseio.com", projectId: "task-a46ae", storageBucket: "task-a46ae.firebasestorage.app", messagingSenderId: "905918551887", appId: "1:905918551887:web:ee64a29b4dfc6b2a7a573a", measurementId: "G-LXC96KFE0E" };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        const generatorScreen = document.getElementById('generator-screen');
+        const wishScreen = document.getElementById('wish-screen');
+        const wishForm = document.getElementById('wish-form');
+        const generateBtn = document.getElementById('generateBtn');
+        const btnText = document.getElementById('btn-text');
+        const loader = document.getElementById('loader');
+        const linkOutput = document.getElementById('link-output');
+        const generatedLinkInput = document.getElementById('generatedLink');
+        const copyBtn = document.getElementById('copyBtn');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('id')) {
+                generatorScreen.style.display = 'none';
+                wishScreen.style.display = 'block';
+                loadWishData(urlParams.get('id'));
+            }
+        });
+
+        function loadWishData(id) {
+            database.ref('wishes/' + id).once('value', (snapshot) => {
+                const messageEl = document.getElementById('secret-message');
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    document.getElementById('wish-name').textContent = data.name;
+                    document.getElementById('wish-age').textContent = `${data.age} তম`;
+                    
+                    triggerFireworks();
+                    createFallingHearts(30);
+                    // --- নতুন টাইপিং অ্যানিমেশন চালু করুন ---
+                    typewriterEffect(messageEl, data.message, 80);
+                } else {
+                    document.getElementById('wish-name').textContent = "দুঃখিত!";
+                    messageEl.textContent = "এই শুভেচ্ছা বার্তাটি খুঁজে পাওয়া যায়নি।";
+                }
+            });
+        }
+
+        // --- নতুন টাইপিং অ্যানিমেশন ফাংশন ---
+        function typewriterEffect(element, text, speed) {
+            let i = 0;
+            element.innerHTML = ""; // আগের লেখা মুছে ফেলুন
+            element.classList.remove('typing-done');
+            
+            const timer = setInterval(() => {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(timer);
+                    element.classList.add('typing-done'); // টাইপিং শেষে কার্সর মুছে ফেলুন
+                }
+            }, speed);
+        }
+
+        function triggerFireworks() {
+            const duration = 5 * 1000, animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+            function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+            const interval = setInterval(() => {
+                const timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+                const particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+        
+        function createFallingHearts(count) {
+            const container = document.getElementById('hearts-container');
+            for(let i = 0; i < count; i++) {
+                const heart = document.createElement('div');
+                heart.classList.add('heart'); heart.textContent = '❤️';
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.animationDuration = (Math.random() * 3 + 4) + 's';
+                heart.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(heart);
+            }
+        }
+        
+        wishForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            btnText.style.display = 'none'; loader.style.display = 'block'; generateBtn.disabled = true;
+            const wishData = { name: document.getElementById('name').value.trim(), age: document.getElementById('age').value.trim(), message: document.getElementById('message').value.trim() };
+            const newWishRef = database.ref('wishes').push();
+            newWishRef.set(wishData).then(() => {
+                const generatedUrl = `${window.location.origin}${window.location.pathname}?id=${newWishRef.key}`;
+                setTimeout(() => {
+                    generatedLinkInput.value = generatedUrl;
+                    linkOutput.style.display = 'block';
+                    btnText.style.display = 'inline'; loader.style.display = 'none'; generateBtn.disabled = false;
+                }, 1000);
+            });
+        });
+
+        copyBtn.addEventListener('click', () => {
+            const linkInput = generatedLinkInput; linkInput.select(); linkInput.setSelectionRange(0, 99999);
+            function showCopySuccess() { copyBtn.textContent = 'কপি হয়েছে!'; setTimeout(() => { copyBtn.textContent = 'কপি করুন'; }, 2000); }
+            if (navigator.clipboard) { navigator.clipboard.writeText(linkInput.value).then(showCopySuccess).catch(() => { document.execCommand('copy'); showCopySuccess(); }); } 
+            else { document.execCommand('copy'); showCopySuccess(); }
+        });
+    </script>
+</body>
+</html>
